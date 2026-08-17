@@ -1,0 +1,341 @@
+{% load static %} 
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zusammenfassung für {{ trainee.first_name }} {{ trainee.last_name }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+        /*.header { text-align: center; margin-bottom: 40px; }*/
+        
+        .signature-section { display: none; }
+        .print-btn {
+            background-color: #607d8b; color: white; padding: 10px 20px; 
+            border: none; border-radius: 4px; cursor: pointer; font-size: 16px;
+            margin-bottom: 20px; display: inline-block;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        .data-table th {
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .data-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        @media print {
+            @page {
+                margin: 0; 
+                size: auto;
+            }
+
+            .no-print, .print-btn { display: none !important; }
+            body { margin: 1.5cm !important; padding: 0 !important; max-width: 100%; overflow-x: hidden; }
+
+            .header-logo { display: block !important; margin-bottom: 20px; text-align: right; }
+            .signature-section { display: block !important; margin-top: 50px; page-break-inside: avoid; }
+
+            .stats-box, .comment-box, .alert-box { 
+                border: 1px solid #ccc;
+                background: white !important; 
+                color: black !important;
+            }
+            
+            .chart-container { 
+                page-break-inside: avoid; 
+        
+                width: 100% !important; 
+                max-width: 100% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+        
+                margin-top: 40px !important; 
+                margin-bottom: 40px !important;
+        
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .chart-container canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+            
+            h1 { font-size: 24px; margin: 0; }
+            h2 { font-size: 18px; color: #555; margin-top: 5px; }
+        }
+
+        .stats-box { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;}
+        .comment-section { margin-top: 30px; }
+        .comment-box { background: #eeffff; padding: 10px; margin-bottom: 10px; border-left: 5px solid #00aaaa; }
+        .alert-box { background: #ffebee; padding: 10px; margin-bottom: 10px; border-left: 5px solid #f44336; }
+    </style>
+</head>
+<body>
+    <button onclick="window.print()" class="print-btn">🖨️ Drucken</button>
+
+    <div class="header-logo">
+        <img src="{% static 'hospital_logo.png' %}" alt="Hospital Logo" style="height: 60px;">
+    </div>
+
+    <div class="header">
+        <h1>Zusammenfassung: {{ months }} Monate</h1>
+        <h2>{{ trainee.first_name }} {{ trainee.last_name }}</h2>
+    </div>
+
+    <div class="stats-box">
+        <strong>Insgesamt abgegebene Bewertungen:</strong> {{ survey_count }}
+    </div>
+
+    <div style="height: 500px; width: 100%;">
+        <canvas id="competencyChart"></canvas>
+    </div>
+
+        <div class="chart-container">
+        <h3 style="text-align: center;">Kategorien</h3>
+        <canvas id="categoryChart"></canvas>
+    </div>
+
+    <h3 style="text-align: center; margin-top: 40px;">Werteübersicht (Kategorien)</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Rolle / Kategorie</th>
+                <th>Durchschnitt (Mittelwert)</th>
+                <th>Standardabweichung (SD)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in category_table %}
+            <tr>
+                <td>{{ row.name }}</td>
+                <td>{{ row.avg }}</td>
+                <td>± {{ row.sd }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if extra_table %}
+<div class="card mt-4" style="border-top: 4px solid #f59e0b;">
+    <div class="card-header">
+        <h3 class="card-title">Vertiefungsfragen (Bedarfsabhängig)</h3>
+        <p class="text-muted small">Diese spezifischen Fragen wurden freigeschaltet, da in der 3-Monats-Evaluation bestimmte Grenzwerte unterschritten wurden.</p>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped m-0">
+            <thead>
+                <tr>
+                    <th>Thema</th>
+                    <th style="width: 100px; text-align: center;">Antworten</th>
+                    <th style="width: 100px; text-align: center;">Mittelwert</th>
+                    <th style="width: 100px; text-align: center;">SD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in extra_table %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td style="text-align: center;">{{ item.count }}</td>
+                    <td style="text-align: center; font-weight: bold;">{{ item.avg }}</td>
+                    <td style="text-align: center; color: #6b7280;">±{{ item.sd }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+    <hr class="no-print">
+
+    <hr>
+
+    <div class="comment-section">
+        <h3>Stärken</h3>
+        {% for comment in comments.strenghts %}
+            <div class="comment-box">{{ comment }}</div>
+        {% empty %}
+            <p><i>Keine Kommentare.</i></p>
+        {% endfor %}
+    </div>
+
+    <div class="comment-section">
+        <h3>Verbesserungsbereiche</h3>
+        {% for comment in comments.improvement %}
+            <div class="alert-box">{{ comment }}</div>
+        {% empty %}
+            <p><i>Keine Kommentare.</i></p>
+        {% endfor %}
+    </div>
+
+    <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;">
+
+    <div class="comment-section">
+        <h3>Äußere Einflüsse, die die Leistung beeinträchtigen</h3>
+        {% if comments.externalInfluencesComments %}
+            {% for comment in comments.externalInfluencesComments %}
+                <div class="comment-box" style="border-left-color: #ff9800; background: #fff3e0;">
+                    {{ comment }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#999; font-style:italic;">Keine besonderen äußeren Einflüsse genannt.</p>
+        {% endif %}
+    </div>
+
+    <div class="comment-section">
+        <h3>Vorschläge zur Veränderung der Arbeitsbedingungen</h3>
+        {% if comments.workConditionsChangeComments %}
+            {% for comment in comments.workConditionsChangeComments %}
+                <div class="comment-box" style="border-left-color: #ff9800; background: #fff3e0;">
+                    {{ comment }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#999; font-style:italic;">Keine Änderungsvorschläge.</p>
+        {% endif %}
+    </div>
+
+    <div class="comment-section">
+        <h3>Zweifel an Integrität oder Gesundheit</h3>
+        {% if comments.doubtsIntegrityHealthComments %}
+            {% for comment in comments.doubtsIntegrityHealthComments %}
+                <div class="comment-box" style="border-left-color: #ff9800; background: #fff3e0;">
+                    {{ comment }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#999; font-style:italic;">Keine Zweifel geäußert.</p>
+        {% endif %}
+    </div>
+
+    <div class="signature-section">
+        <div style="display: flex; justify-content: space-between; margin-top: 80px;">
+            <div style="width: 40%;">
+                <div style="border-bottom: 1px solid black; height: 1px; margin-bottom: 10px;"></div>
+                Ort, Datum
+            </div>
+            <div style="width: 40%;">
+                <div style="border-bottom: 1px solid black; height: 1px; margin-bottom: 10px;"></div>
+                Unterschrift
+            </div>
+        </div>
+    </div>
+
+    <hr class="no-print">
+
+    {{ chart_labels|json_script:"chart-labels-data" }}
+    {{ chart_data|json_script:"chart-values-data" }}
+    {{ chart_sd|json_script:"chart-sd-data" }}
+
+    {{ category_labels|json_script:"category-labels-data" }}
+    {{ category_data|json_script:"category-values-data" }}
+    {{ category_sd|json_script:"category-sd-data" }}
+
+    <script>
+        const ctx = document.getElementById('competencyChart').getContext('2d');     
+        const labels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+        const dataPoints = JSON.parse(document.getElementById('chart-values-data').textContent);
+        const sdPoints = JSON.parse(document.getElementById('chart-sd-data').textContent);
+
+        new Chart(ctx, {
+            type: 'radar', 
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Durchschnittliche Kompetenzbewertung (1-5)',
+                    data: dataPoints,
+                    fill: true,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    pointBackgroundColor: 'rgb(54, 162, 235)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(54, 162, 235)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { display: false },
+                        suggestedMin: 0,
+                        suggestedMax: 5 
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.r !== null) {
+                                    label += context.parsed.r + ' (SD: ± ' + sdPoints[context.dataIndex] + ')';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctxBar = document.getElementById('categoryChart').getContext('2d');
+        const catLabels = JSON.parse(document.getElementById('category-labels-data').textContent);
+        const catDataPoints = JSON.parse(document.getElementById('category-values-data').textContent);
+        const catSdPoints = JSON.parse(document.getElementById('category-sd-data').textContent);
+
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    label: 'Durchschnitt pro Kategorie (1-5)',
+                    data: catDataPoints,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgb(75, 192, 192)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        suggestedMax: 5 
+                    }
+                },
+                //animation: false
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + ' (SD: ± ' + catSdPoints[context.dataIndex] + ')';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

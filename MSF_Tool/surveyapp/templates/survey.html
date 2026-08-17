@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MSF Umfrage</title>
+  <link href="https://unpkg.com/survey-core/defaultV2.css" rel="stylesheet" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; margin: 0; padding: 2rem; background: #f7f8fa; }
+    header { max-width: 900px; margin: 0 auto 1rem; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 6px 18px rgba(12,18,32,0.06); padding: 1.25rem; max-width: 900px; margin: 0 auto; }
+    #surveyContainer { margin-top: 1rem; }
+    #result { white-space: pre-wrap; background:#0f1724; color:#d1fae5; padding:1rem; border-radius:8px; margin-top:1rem; display:none; }
+    footer { max-width:900px; margin:1rem auto 0; text-align:center; color:#6b7280; font-size:0.9rem }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 style="margin:0">MSF Umfrage</h1>
+  </header>
+
+  <main class="card">
+    <div id="surveyContainer"></div>
+    <div id="result"></div>
+  </main>
+
+  <footer>
+    Interdisziplinäre Internistische Intensivmedizin
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/survey-jquery/survey.jquery.min.js"></script>
+  <script src="https://unpkg.com/survey-creator-core/i18n/german.js"></script>
+
+  {{ weak_categories|json_script:"weak-categories-data" }}
+
+  <script>
+    const reviewerId = "{{ reviewer_id }}";
+    const traineeId = "{{ trainee_id }}";
+    const traineeName = "{{ trainee_name }}";
+
+    const weakCategories = JSON.parse(document.getElementById('weak-categories-data').textContent);
+    const currentMilestone = parseInt("{{ milestone }}");
+    console.log("Categories below 60%:", weakCategories);
+
+    const surveyJson = {
+      title: "Wie beurteilen Sie " + traineeName + " im Hinblick auf die folgenden Aspekte unter Berücksichtigung des Weiterbildungsstandes?",
+      description: "Bitte bewerten Sie die folgenden Aspekte unter Berücksichtigung des Weiterbildungsstandes.",
+      pages: [
+        {
+          name: "page1",
+          title: "Die Ärztin/ der Arzt … ",
+          elements: [
+            { type: "rating", name: "item1", title: "…stellt korrekte Diagnosen.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item2", title: "…entwickelt angemessene Behandlungspläne.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item3", title: "…ist sich seiner eigenen Grenzen bewusst und bittet in der entsprechenden Situation um Hilfe.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item4", title: "…ordnet medizinische Maßnahmen im Bewusstsein der Kosten an.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item5", title: "…hat ein gutes Zeitmanagement und setzt Prioritäten.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item6", title: "…verfügt über gute manuelle/technische Fähigkeiten.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item7", title: "…führt die Krankengeschichte und Berichte zeitgerecht und präzise.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item8", title: "…kommuniziert adäquat mit Patienten und Angehörigen.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item9", title: "…bezieht psychosoziale Aspekte mit ein.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item10", title: "…behält die Patientensicherheit im Blick.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item11", title: "…kommuniziert adäquat mit Kollegen.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item12", title: "…ist erreichbar und zuverlässig.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item13", title: "…gibt gern Wissen an junge Kollegen weiter.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item14", title: "…ist offen für Feedback und setzt es um.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item15", title: "…ist initiativ und übernimmt Verantwortung.", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 },
+            { type: "rating", name: "item16", title: "Wie beurteilen Sie im Gesamteindruck diese Ärztin/ diesen Arzt?", isRequired: true,
+              minRateDescription: "Unter meinen Erwartungen", maxRateDescription: "Weit über meinen Erwartungen", rateMax: 5 }
+          ]
+        },
+        {
+          name: "page_comments",
+          elements: [
+            { type: "comment", name: "strenghts", title: "Was sind die besonderen Stärken der Ärztin/des Arztes?" },
+            { type: "comment", name: "improvement", title: "In welchen Bereichen sollte die Ärztin/der Arzt sich insbesondere noch verbessern?" }
+          ]
+        },
+        {
+          name: "page_influences",
+          elements: [
+            { type: "radiogroup", name: "externalInfluences", title: "Sehen Sie äußere Einflüsse, die die Leistung der Ärztin/des Arztes beeinträchtigen oder befördern?", choices: ["Nein","Ja"] },
+            { type: "comment", name: "externalInfluencesComments", title: "Falls ja: Bitte erläutern.", visibleIf: "{externalInfluences} = 'Ja'" },
+            { type: "radiogroup", name: "workConditionsChange", title: "Haben Sie Vorschläge zur Veränderung der Arbeitsbedingungen der Ärztin/des Arztes?", choices: ["Nein","Ja"] },
+            { type: "comment", name: "workConditionsChangeComments", title: "Falls ja: Bitte Vorschläge nennen.", visibleIf: "{workConditionsChange} = 'Ja'" },
+            { type: "radiogroup", name: "doubtsIntegrityHealth", title: "Haben Sie irgendwelche Zweifel an der Integrität oder Gesundheit der Ärztin/ des Arztes?", choices: ["Nein","Ja"] },
+            { type: "comment", name: "doubtsIntegrityHealthComments", title: "Falls ja: Bitte Bedenken beschreiben.", visibleIf: "{doubtsIntegrityHealth} = 'Ja'" }
+          ]
+        }
+      ]
+    };
+
+    if (currentMilestone === 6) {
+      let insertIndex = surveyJson.pages.findIndex(page => page.name === "page_comments");
+      
+      if (weakCategories.includes("medical_expert")) {
+        const extraMedPage = {
+          name: "page_extra_med_experte",
+          title: "Vertiefung: Medizinische:r Expert:in",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_med_diagnoses", title: "Thema: Differenzialdiagnose", isRequired: true, rateMax: 5,
+              description: "1 = Mangelhafte Differenzialdiagnose. Keine korrekte Diagnose in der Differenzialdiagnose.\n3 = Angemessene Differenzialdiagnose. Wahrscheinlichste Diagnose enthalten.\n5 = Erkennt Unsicherheiten. Gezielte, geordnete und aktive Ausarbeitung der Diagnose." 
+            },
+            { 
+              type: "rating", name: "extra_med_examination", title: "Thema: Untersuchung und Befundinterpretation", isRequired: true, rateMax: 5,
+              description: "1 = Umfangreiches, unnötiges Work-up. Falsche Interpretation.\n3 = Fordert geeignete Untersuchungen an. Angemessene Interpretation.\n5 = Organisiert Untersuchungen basierend auf Dringlichkeit und Differenzialdiagnose." 
+            },
+            { 
+              type: "rating", name: "extra_med_therapy", title: "Thema: Therapie", isRequired: true, rateMax: 5,
+              description: "1 = Behandlung unzureichend, unsicher und nicht auf der Dringlichkeit basierend.\n3 = Angemessene Stabilisierung. Behandlung entsprechend der Dringlichkeit organisiert.\n5 = Schnelle, genaue und evidienzbasierte Behandlung. Notfälle werden schnell adressiert." 
+            }
+          ]
+        };
+        // Insert the page and advance the index so the next page goes after it
+        surveyJson.pages.splice(insertIndex, 0, extraMedPage);
+        insertIndex++; 
+      }
+
+      if (weakCategories.includes("communicator")) {
+        const extraCommPage = {
+          name: "page_extra_communicator",
+          title: "Vertiefung: Kommunikator:in",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_kom_1", title: "Spricht klar und deutlich bei der Kommunikation mit Kolleg:innen, Therapeut:innen, Angehörigen, Pflegenden und/oder Patient:innen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_2", title: "Spricht Patient:innen mit Namen an.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_3", title: "Stellt sich Patient:innen vor.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_4", title: "Wendet die erforderliche Zeit auf, um alle Details des Gesundheitszustands von Patient:innen zu erfassen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_5", title: "Hört Patient:innen aufmerksam zu.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_6", title: "Vermittelt Patient:innen ein angenehmes Gefühl.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_7", title: "Erklärt die Rationale eines Behandlungsplanes verständlich.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_8", title: "Antwortet auf alle Fragen von Patient:innen bzw. Angehörigen in einer verständlichen Sprache.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_9", title: "Zeigt beim Überbringen von schlechten Nachrichten Mitgefühl.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_10", title: "Zeigt eine zeitnahe Kommunikation von Informationen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_11", title: "Ist in der Lage, effektiv zuzuhören und Informationen zusammenzufassen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_kom_12", title: "Zeigt eine hohe Qualität der schriftlichen Kommunikation (einschließlich E-Mail-Kommunikation, Dokumentation im PDMS, etc.).", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            }
+          ]
+        };
+        // Insert the page and advance the index
+        surveyJson.pages.splice(insertIndex, 0, extraCommPage);
+        insertIndex++;
+      }
+
+      if (weakCategories.includes("member_of_team")) {
+        const extraTeamPage = {
+          name: "page_extra_team",
+          title: "Vertiefung: Mitglied eines Teams",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_team_management", title: "Thema: Team Management", isRequired: true, rateMax: 5,
+              description: "1 = Arbeitet allein. Respektiert nicht andere Teammitglieder.\n3 = Bezieht das Team in das Management ein. Respektiert Andere während Interventionen.\n5 = Nutzt die Stärken der Teammitglieder. Überlastet sie nicht." 
+            },
+            { 
+              type: "rating", name: "extra_team_information", title: "Thema: Informationsaustausch", isRequired: true, rateMax: 5,
+              description: "1 = Teilt keine Informationen. Berücksichtigt das Team nicht.\n3 = Informiert das Team über Diagnose und Behandlungsplan.\n5 = Verbalisiert den diagnostischen und therapeutischen Prozess. Berücksichtigt die Beiträge des Teams bei der Behandlung." 
+            },
+            { 
+              type: "rating", name: "extra_team_3", title: "Verhindert, löst oder schlichtet Konflikte in einem Team.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen"
+            }
+          ]
+          };
+
+          surveyJson.pages.splice(insertIndex, 0, extraTeamPage);
+          insertIndex++;
+      }
+
+      if (weakCategories.includes("responsibility")) {
+        const extraRespPage = {
+          name: "page_extra_responsibility",
+          title: "Vertiefung: Verantwortungsträger:in",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_resp_prio", title: "Thema: Priorisierung von Interventionen", isRequired: true, rateMax: 5,
+              description: "1 = Priorisiert Interventionen nicht. Stabilisiert Patient:innen nicht.\n3 = Priorisiert Interventionen und Stabilisierung.\n5 = Hervorragende Priorisierung und angemessene Neubewertung von Interventionen." 
+            },
+            { 
+              type: "rating", name: "extra_resp_orga", title: "Thema: Organisation", isRequired: true, rateMax: 5,
+              description: "1 = Mangelnde Organisation. Nicht systematischer Ansatz.\n3 = Angemessene Struktur, Anamnese, körperliche und apparative Untersuchung, Behandlung.\n5 = Effiziente, flüssige Struktur. Gezielte, vollständige Bewertung." 
+            },
+            { 
+              type: "rating", name: "extra_resp_adjust", title: "Thema: Anpassungsfähigkeit", isRequired: true, rateMax: 5,
+              description: "1 = Unorganisiert oder berücksichtigt neue Informationen nicht.\n3 = Findet Lösungen, passt Vorgehensweise anhand neuer Informationen an.\n5 = Passt sich schnell an, bereitet sich im Voraus auf mehrere mögliche Ergebnisse vor." 
+            },
+            { 
+              type: "rating", name: "extra_resp_help", title: "Thema: Hilfe anfordern", isRequired: true, rateMax: 5,
+              description: "1 = Ruft keine Hilfe.\n3 = Ruft Hilfe, erkennt Grenzen.\n5 = Ruft Hilfe mit angemessener Informationsweitergabe an Helfende." 
+            }
+          ]
+        };
+        // Insert the page and advance the index so the next page goes after it
+        surveyJson.pages.splice(insertIndex, 0, extraRespPage);
+        insertIndex++; 
+      }
+
+      if (weakCategories.includes("advisor")) {
+        const extraAdvisorPage = {
+          name: "page_extra_advisor",
+          title: "Vertiefung: Gesundheitsberater:in und -fürsprecher:in",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_advisor_1", title: "Stellt Fragen zu den Lebensgewohnheiten der Patient:innen, welche sich auf deren Gesundheit auswirken können (z.B. Rauchen, Alkohol- und Drogenkonsum, Gewichtsverlust).", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_advisor_2", title: "Erläutert Patient:innen die mit ihren persönlichen Entscheidungen verbundenen Risiken.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_advisor_3", title: "Bietet Patient:innen Programme zur Gesundheitsförderung (z.B. Rauchentwöhnung, Drogenentzug, Ernährungsberatung) an.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_advisor_4", title: "Überweist Patient:innen an andere den Bedürfnissen orientierten Unterstützungsangeboten (Sozialarbeit, Psychologie).", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_advisor_5", title: "Informiert Patient:innen über Vorsorgeprogramme.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            }
+          ]
+        };
+        // Insert the page and advance the index
+        surveyJson.pages.splice(insertIndex, 0, extraAdvisorPage);
+        insertIndex++;
+      }
+
+      if (weakCategories.includes("scholar")) {
+        const extraScholarPage = {
+          name: "page_extra_scholar",
+          title: "Vertiefung: Gelehrte:r",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_scholar_1", title: "Engagiert sich durch kontinuierliches Lernen für die kontinuierliche Verbesserung der beruflichen Tätigkeit.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_scholar_2", title: "Unterrichtet bzw. erläutert Inhalte gegenüber Studierenden und andere medizinischen Fachberufen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_scholar_3", title: "Integrieret aktuelle Evidenz in die Praxis.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_scholar_4", title: "Trägt zur Schaffung und Verbreitung von gesundheitsbezogenen Wissen und dessen Anwendung bei.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            }
+          ]
+        };
+        // Insert the page and advance the index
+        surveyJson.pages.splice(insertIndex, 0, extraScholarPage);
+        insertIndex++;
+      }
+
+      if (weakCategories.includes("professional")) {
+        const extraProfPage = {
+          name: "page_extra_professional",
+          title: "Vertiefung: Professionell Handelnde:r",
+          description: "Aufgrund der vorherigen Evaluation bitten wir Sie in diesem Bereich um eine detailliertere Einschätzung.",
+          elements: [
+            { 
+              type: "rating", name: "extra_prof_1", title: "Kleidet sich professionell.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_2", title: "Tritt sauber und gepflegt auf.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_3", title: "Wirkt selbstbewusst.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_4", title: "Präsentiert sich professionell auftretend.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_5", title: "Zeigt verantwortungsbewusste Arbeitsgewohnheiten, Enthusiasmus und Motivation.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_6", title: "Interagiert auf respektvolle und mitfühlende Weise mit Patient:innen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_7", title: "Zeigt Integrität, Ehrlichkeit, Mitgefühl und Respekt gegenüber anderen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_8", title: "Behandelt Patient:innen als Menschen und nicht als Fall.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_9", title: "Urteilt nicht über den Lebensstil von Patient:innen.", 
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_10", title: "Urteilt nicht über Behandlungsentscheidungen von Patient:innen.",
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            },
+            { 
+              type: "rating", name: "extra_prof_11", title: "Zeigt Bewusstsein für die eigenen Grenzen.",
+              isRequired: true, rateMax: 5, minRateDescription: "Unter Erwartungen", maxRateDescription: "Über Erwartungen" 
+            }
+          ]
+        };
+        // Insert the page and advance the index
+        surveyJson.pages.splice(insertIndex, 0, extraProfPage);
+        insertIndex++;
+      }
+    }
+
+
+    Survey.StylesManager.applyTheme("defaultV2");
+
+    const survey = new Survey.Model(surveyJson);
+    survey.locale = "de";
+
+    // Replace all instances of \n with the HTML break tag
+    survey.onTextMarkdown.add(function(survey, options) {
+        options.html = options.text.replace(/\n/g, '<br>');
+    });
+
+    survey.onComplete.add(function (sender) {
+      const results = sender.data;
+      fetch("/save-survey/", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}' 
+        },
+        body: JSON.stringify({
+          survey_data: results,
+          reviewer_id: reviewerId,
+          trainee_id: traineeId,
+          milestone: parseInt("{{ milestone }}")
+        })
+      });
+    });
+
+    $(function() {
+      $("#surveyContainer").Survey({ model: survey });
+    });
+  </script>
+</body>
+</html>

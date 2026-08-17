@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}
+    {{ title }} | Multi-Source-Feedback
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <img src="{% static '/iccas_logo.jpg' %}" alt="App Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+        Multi-Source-Feedback Verwaltung
+    </a>
+</h1>
+{% endblock %}
+
+{% block userlinks %}
+    <a href="/about/">About MSF Tool</a> / 
+    
+    {{ block.super }}
+{% endblock %}

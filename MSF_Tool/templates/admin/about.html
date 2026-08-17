@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}About MSF Tool | Hospital Admin{% endblock %}
+
+{% block content_title %}
+    <h1>Über das MSF Tool</h1>
+{% endblock %}
+
+{% block content %}
+<div id="content-main" style="max-width: 800px;">
+    
+    <div class="module" style="padding: 20px;">
+        
+        <h2>Systemübersicht</h2>
+        <p>Das Multi-Source-Feedback-Tool (MSF) ist eine Anwendung, die dazu dient, Bewertungsabläufe für Auszubildende in Krankenhäusern zu automatisieren und auszuwerten.</p>
+
+        <br>
+
+        <h2>Architektur</h2>
+        <ul style="line-height: 1.6; margin-left: 20px;">
+            <li><strong>Framework:</strong> Python / Django</li>
+            <li><strong>Datenbank:</strong> SQLite</li>
+            <li><strong>Background Workers:</strong> Celery & Redis</li>
+            <li><strong>Server Infrastruktur:</strong> Nginx & Gunicorn</li>
+            <li><strong>Umfrage:</strong> Survey.js</li>
+        </ul>
+
+        <br>
+
+        <h2>Automatisierung</h2>
+        <p>Das System nutzt Celery Beat, um täglich um 8:00 Uhr Cron-Jobs auszuführen. Es berechnet automatisch die Starttermine und löst E-Mail-Einladungen aus für:</p>
+        <ul style="line-height: 1.6; margin-left: 20px;">
+            <li><strong>Bewertung nach drei Monaten</strong></li>
+            <li><strong>Bewertung nach sechs Monaten</strong></li>
+            <li><strong>Tägliche Errinerung</strong> (bei ausstehenden Bewertungen)</li>
+        </ul>
+
+    </div>
+
+    <br>
+    <a href="/admin/" class="button">&larr; Zurück zur Startseite</a>
+
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+services:
+  web:
+    build: .
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+      - sqlite_data:/app/data
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  nginx:
+    image: nginx:1.25-alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+  worker:
+    build: .
+    command: celery -A MSF_Tool worker --loglevel=info
+    env_file: .env
+    depends_on:
+      - redis
+      - web
+    volumes:
+      - sqlite_data:/app/data
+
+  beat:
+    build: .
+    command: celery -A MSF_Tool beat --loglevel=info
+    env_file: .env
+    depends_on:
+      - redis
+      - web
+    volumes:
+      - sqlite_data:/app/data
+
+volumes:
+  static_volume:
+  media_volume:
+  sqlite_data:
