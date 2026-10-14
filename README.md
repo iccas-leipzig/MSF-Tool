@@ -8,7 +8,7 @@ The system generates individual invitation links asynchronously, evaluates incom
 
 - **Automated Invitations:** Scheduled email delivery (via Celery/Redis) for the 3- and 6-month evaluations
 - **Secure Evaluation Without Logging In:** One-time links for evaluators
-- **Adaptive Questionnaires (SurveyJS):** Dynamic generation of follow-up questions in the front end, based on historical database values (threshold < 60%)
+- **Adaptive Questionnaires (SurveyJS):** Dynamic generation of follow-up questions in the front end, based on historical database values (mean role score < 3 on the five-point rating scale)
 - **Central Management:** Django admin dashboard for maintaining data (trainees, evaluators)
 - **Visual Reporting:** Aggregation of raw data and graphical presentation of the results (means, standard deviations) for the review
 
