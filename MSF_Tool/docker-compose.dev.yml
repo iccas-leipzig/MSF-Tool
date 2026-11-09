@@ -30,6 +30,8 @@ services:
 
   worker:
     build: .
+    # Skip the entrypoint: only the web container applies migrations
+    entrypoint: []
     command: celery -A MSF_Tool worker --loglevel=info
     env_file: .env
     depends_on:
@@ -40,6 +42,8 @@ services:
 
   beat:
     build: .
+    # Skip the entrypoint: only the web container applies migrations
+    entrypoint: []
     command: celery -A MSF_Tool beat --loglevel=info
     env_file: .env
     depends_on:
