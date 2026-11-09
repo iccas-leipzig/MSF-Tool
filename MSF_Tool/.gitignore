@@ -1,1 +1,21 @@
 .env
+.env.*
+!.env.example
+docker-compose.yml
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Local runtime data (SQLite database, Celery beat schedule)
+/data/
+*.sqlite3*
+celerybeat-schedule*
+
+# Editor settings
+.vscode/
+.idea/

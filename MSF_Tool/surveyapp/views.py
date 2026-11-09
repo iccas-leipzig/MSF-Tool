@@ -9,9 +9,12 @@ from datetime import timedelta
 from collections import defaultdict
 
 import json
+import logging
 from .models import SurveyResult, SurveyInvitation
 from staff.models import Doctor, Nurse, Therapist
 from trainees.models import Trainee
+
+logger = logging.getLogger(__name__)
 
 QUESTION_MAP = {
     "item1": "Diagnosen",
@@ -122,24 +125,34 @@ def survey_page(request, reviewer_token, trainee_token, milestone):
     # Find the Reviewer
     reviewer = get_respondent_by_token(reviewer_token)
     if not reviewer:
+        logger.warning("Survey link %s rejected: reviewer not found (deleted?)", request.path)
         raise Http404("Reviewer not found")
 
     # Find the Trainee
-    trainee = get_object_or_404(Trainee, public_id=trainee_token)
+    trainee = Trainee.objects.filter(public_id=trainee_token).first()
+    if not trainee:
+        logger.warning("Survey link %s rejected: trainee not found (deleted?)", request.path)
+        raise Http404("Trainee not found")
 
     # Find the specific invitation for this link
-    invitation = SurveyInvitation.objects.filter(
+    invitations = SurveyInvitation.objects.filter(
         object_id=reviewer.id,
         content_type__model=reviewer._meta.model_name,
         trainee=trainee,
-        milestone=milestone
-    ).last()
+    )
+    invitation = invitations.filter(milestone=milestone).last()
 
     if not invitation:
-        return render(request, "error.html", {"message": "Ungültiger Link."})
-        
+        logger.warning(
+            "Survey link %s rejected: no invitation for %s %s, trainee %s, milestone %s (existing milestones: %s)",
+            request.path, reviewer._meta.model_name, reviewer.pk, trainee.pk, milestone,
+            list(invitations.values_list("milestone", flat=True)),
+        )
+        return render(request, "error.html", {"message": "Ungültiger Link."}, status=404)
+
     # Has it already been completed
     if invitation.completed_at is not None:
+        logger.info("Survey link %s: invitation %s already completed", request.path, invitation.pk)
         return render(request, "already_completed.html", {
             "trainee": trainee
         })
@@ -206,12 +219,18 @@ def save_survey(request):
                 object_id=reviewer.id,
                 content_type__model=reviewer._meta.model_name,
                 trainee=trainee,
+                milestone=milestone,
                 completed_at__isnull=True
             ).last()
 
             if invitation:
                 invitation.completed_at = timezone.now()
                 invitation.save()
+            else:
+                logger.warning(
+                    "Survey saved without open invitation: %s %s, trainee %s, milestone %s",
+                    reviewer._meta.model_name, reviewer.pk, trainee.pk, milestone,
+                )
 
             return JsonResponse({"status": "ok"})
             

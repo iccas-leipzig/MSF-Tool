@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.core.mail import get_connection, EmailMessage
 
+import logging
 import random
 import textwrap
 import time
@@ -12,6 +13,15 @@ import time
 from .models import SurveyInvitation
 from trainees.models import Trainee
 from staff.models import Doctor, Nurse, Therapist
+
+logger = logging.getLogger(__name__)
+
+# Logs every generated link so invalid links can be traced back to their invitation
+def log_survey_link(kind, invitation, reviewer, url):
+    logger.info(
+        "%s: invitation %s, trainee %s, %s %s <%s>, link %s",
+        kind, invitation.pk, invitation.trainee_id, reviewer._meta.model_name, reviewer.pk, reviewer.email, url,
+    )
 
 # Sends mails for the 3-month survey
 @shared_task
@@ -52,6 +62,7 @@ def send_quarterly_surveys():
             )
 
             url = f"{settings.SITE_URL}/survey/{reviewer.public_id}/{trainee.public_id}/3/"
+            log_survey_link("3-months survey", invitation, reviewer, url)
 
             try:
                 send_mail(
@@ -80,7 +91,7 @@ def send_quarterly_surveys():
 
             except Exception as e:
                 emails_failed += 1
-                print(f"Error sending 3-months survey to {reviewer.email}: {e}")
+                logger.error("Error sending 3-months survey to %s (invitation %s): %s", reviewer.email, invitation.pk, e)
 
         trainee.survey_round_1_sent = True
         trainee.save()
@@ -122,10 +133,11 @@ def send_six_month_surveys():
             invitation = SurveyInvitation.objects.create(
                 reviewer=reviewer,
                 trainee=trainee,
-                milestone=3
+                milestone=6
             )
 
             url = f"{settings.SITE_URL}/survey/{reviewer.public_id}/{trainee.public_id}/6/"
+            log_survey_link("6-months survey", invitation, reviewer, url)
 
             try:
                 send_mail(
@@ -154,7 +166,7 @@ def send_six_month_surveys():
 
             except Exception as e:
                 emails_failed += 1
-                print(f"Error sending 6-months survey to {reviewer.email}: {e}")
+                logger.error("Error sending 6-months survey to %s (invitation %s): %s", reviewer.email, invitation.pk, e)
         
         trainee.survey_round_2_sent = True
         trainee.save()
@@ -188,8 +200,14 @@ def send_survey_reminders():
         reviewer = invite.reviewer
         trainee = invite.trainee
         milestone = invite.milestone
-        
-        url = f"{settings.SITE_URL}/survey/{reviewer.public_id}/{trainee.public_id}/{milestone}"
+
+        # The staff member was deleted after the invitation was created
+        if reviewer is None:
+            logger.warning("Reminder for invitation %s skipped: reviewer %s was deleted", invite.pk, invite.object_id)
+            continue
+
+        url = f"{settings.SITE_URL}/survey/{reviewer.public_id}/{trainee.public_id}/{milestone}/"
+        log_survey_link("Reminder", invite, reviewer, url)
 
         try:
             send_mail(
@@ -218,7 +236,7 @@ def send_survey_reminders():
 
         except Exception as e:
             emails_failed += 1
-            print(f"Error sending reminder to {reviewer.email}: {e}")
+            logger.error("Error sending reminder to %s (invitation %s): %s", reviewer.email, invite.pk, e)
 
         invite.reminded_at = timezone.now()
         invite.save()
